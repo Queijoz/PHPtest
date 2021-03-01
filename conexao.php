@@ -28,7 +28,7 @@ function getConsulta($conexao, $cep){
         $response = file_get_contents('https://viacep.com.br/ws/'.$cep.'/xml');
         $consulta = simplexml_load_string($response);
 
-        if(checaCEP($consulta->cep)){
+        if(checaCEP($consulta)){
 
             // Salva no banco de dados APENAS AS INFORMAÇÕES ENCONTRADAS.
 
@@ -60,15 +60,17 @@ function getConsulta($conexao, $cep){
             $conexao->query($sqlQuery);
 
             return $consulta;
+        }else {
+            return $consulta;
         }
 
         
     }
 }
 
-function checaCEP(){
+function checaCEP($consulta){
     // Checa se o CEP informado é válido.
-    if(strlen($_POST['cep']) != 8 || preg_match("/[a-z]/i", $_POST['cep']) || $consulta->uf == ""){
+    if(strlen($_POST['cep']) != 8 || preg_match("/[a-z]/i", $_POST['cep']) || $consulta->erro){
         return false;
     }
     return true;

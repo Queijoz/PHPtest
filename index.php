@@ -34,7 +34,9 @@
 
         // Obtém o objeto consulta do banco de dados ou do site ViaCep.
         $consulta = getConsulta($conexao, $_POST['cep']);
-
+        if($consulta->erro){
+          goto invalido;
+        }
         // Exibe todas as informações encontradas do CEP informado.
         echo '<div class="container bg-light p-5 text-center">
         <h1 class="display-4 mb-5">'.$consulta->localidade.' / '.$consulta->uf.'</h1>';
@@ -50,12 +52,13 @@
         echo '<a class="btn btn-primary btn-lg rounded-0 mt-3" href="'.$url.'">Nova Consulta</a></div>';
       }else{
         // Caso a URL não possua o parâmetro do CEP, exibe o formulário de consulta.
+        invalido:
         echo '<div class="container bg-light p-5 text-center">
           
             <h1 class="display-4">Buscar Endereço</h1>
             <p class="lead">Procure um endereço pelo CEP.</p>';
             // Checa se é necessário informar ao usuário que o CEP informado é inválido.
-            if(!checaCEP($_POST['cep'])){
+            if(checaCEP($_POST['cep'])){
               echo '<div class="alert alert-danger" role="alert">
                       CEP inválido! Informe um CEP existente usando apenas números.
                     </div>';
