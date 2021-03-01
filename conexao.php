@@ -23,7 +23,55 @@ function getConsulta($conexao, $cep){
         // Caso exista, pega a consulta do bando de dados em forma de objeto.
         $consulta = (object) $resultado->fetch_assoc();
         return $consulta;
+    }else{
+        // Caso não exista, pega as informações do site ViaCep.
+        $response = file_get_contents('https://viacep.com.br/ws/'.$cep.'/xml');
+        $consulta = simplexml_load_string($response);
+
+        if(checaCEP($consulta->cep)){
+
+            // Salva no banco de dados APENAS AS INFORMAÇÕES ENCONTRADAS.
+
+            $sqlQuery = "INSERT INTO consulta ( cep";
+
+            if($consulta->localidade != ""){$sqlQuery .= ",localidade";}
+            if($consulta->uf != ""){$sqlQuery .= ",uf";}
+            if($consulta->ddd != ""){$sqlQuery .= ",ddd";}
+            if($consulta->bairro != ""){$sqlQuery .= ",bairro";}
+            if($consulta->logradouro != ""){$sqlQuery .= ",logradouro";}
+            if($consulta->complemento != ""){$sqlQuery .= ",complemento";}
+            if($consulta->ibge != ""){$sqlQuery .= ",ibge";}
+            if($consulta->gia != ""){$sqlQuery .= ",gia";}
+            if($consulta->siafi != ""){$sqlQuery .= ",siafi";}
+
+            $sqlQuery .= ") VALUES ( '$cep'";
+
+            if($consulta->localidade != ""){$sqlQuery .= ",'$consulta->localidade'";}
+            if($consulta->uf != ""){$sqlQuery .= ",'$consulta->uf'";}
+            if($consulta->ddd != ""){$sqlQuery .= ",$consulta->ddd";}
+            if($consulta->bairro != ""){$sqlQuery .= ",'$consulta->bairro'";}
+            if($consulta->logradouro != ""){$sqlQuery .= ",'$consulta->logradouro'";}
+            if($consulta->complemento != ""){$sqlQuery .= ",'$consulta->complemento'";}
+            if($consulta->ibge != ""){$sqlQuery .= ",'$consulta->ibge'";}
+            if($consulta->gia != ""){$sqlQuery .= ",'$consulta->gia'";}
+            if($consulta->siafi != ""){$sqlQuery .= ",'$consulta->siafi'";}
+
+            $sqlQuery .= ")";
+            $conexao->query($sqlQuery);
+
+            return $consulta;
+        }
+
+        
     }
+}
+
+function checaCEP(){
+    // Checa se o CEP informado é válido.
+    if(strlen($_POST['cep']) != 8 || preg_match("/[a-z]/i", $_POST['cep']) || $consulta->uf == ""){
+        return false;
+    }
+    return true;
 }
 
 // Função usada para debugs pelo console do navegador.
